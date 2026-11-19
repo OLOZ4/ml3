@@ -1,0 +1,41 @@
+config <- list(
+  input_path        = "a05/A05.csv",     # žali duomenų failas
+  output_dir        = "datasets",        # išvesties aplankas
+  output_file       = "a05.csv",         # išvesties failas
+  outlier_column    = "price_per_carat", # pagal ką šalinamos išskirtys
+  iqr_multiplier    = 1.5,               # IQR daugiklis (Q3 + 1.5 x IQR)
+  correlation_limit = 0.95               # požymių porų |r| riba
+)
+
+source("src/pre_processing.r")
+
+
+cat("=== 1.1: duomenų nuskaitymas ===\n")
+diamonds <- read_raw_data(config$input_path)
+
+cat("\n=== 1.2: netinkamų reikšmių užpildymas ===\n")
+diamonds <- fill_invalid_values(diamonds)
+
+cat("\n=== 1.3: išskirčių šalinimas ===\n")
+diamonds <- remove_outliers(diamonds,
+                            column         = config$outlier_column,
+                            iqr_multiplier = config$iqr_multiplier)
+
+cat("\n=== 1.4: koreliuotų požymių šalinimas ===\n")
+diamonds <- remove_correlated_features(diamonds,
+                                        threshold = config$correlation_limit)
+
+cat("\n=== 1.5: Normavimas ===\n")
+diamonds <- normalize_z_score(diamonds)
+
+# ------------------------- IŠVESTIS ------------------------------------------
+dir.create(config$output_dir, showWarnings = FALSE, recursive = TRUE)
+output_path <- file.path(config$output_dir, config$output_file)
+write.csv(diamonds, output_path, row.names = FALSE)
+
+cat("\n============================================================\n")
+cat("Baigta!\n")
+cat("  Eilutės:  ", nrow(diamonds), "\n")
+cat("  Stulpeliai:", paste(names(diamonds), collapse = ", "), "\n")
+cat("  Išvestis:  ", output_path, "\n")
+cat("============================================================\n")
