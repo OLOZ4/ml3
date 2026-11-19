@@ -7,7 +7,8 @@ config <- list(
   correlation_limit = 0.95               # požymių porų |r| riba
 )
 
-source("src/pre_processing.r")
+source("src/01_pre_processing.r")
+source("src/02_reduce_dimensions.r")
 
 
 cat("=== 1.1: duomenų nuskaitymas ===\n")
@@ -17,13 +18,10 @@ cat("\n=== 1.2: netinkamų reikšmių užpildymas ===\n")
 diamonds <- fill_invalid_values(diamonds)
 
 cat("\n=== 1.3: išskirčių šalinimas ===\n")
-diamonds <- remove_outliers(diamonds,
-                            column         = config$outlier_column,
-                            iqr_multiplier = config$iqr_multiplier)
+diamonds <- remove_outliers(diamonds, column = config$outlier_column, iqr_multiplier = config$iqr_multiplier)
 
 cat("\n=== 1.4: koreliuotų požymių šalinimas ===\n")
-diamonds <- remove_correlated_features(diamonds,
-                                        threshold = config$correlation_limit)
+diamonds <- remove_correlated_features(diamonds, threshold = config$correlation_limit)
 
 cat("\n=== 1.5: Normavimas ===\n")
 diamonds <- normalize_z_score(diamonds)
@@ -32,6 +30,9 @@ diamonds <- normalize_z_score(diamonds)
 dir.create(config$output_dir, showWarnings = FALSE, recursive = TRUE)
 output_path <- file.path(config$output_dir, config$output_file)
 write.csv(diamonds, output_path, row.names = FALSE)
+
+cat("\n=== 2: dimesijų mažinimas (PCA / UMAP) ===\n")
+reduce_dimensions(diamonds, config$output_dir)
 
 cat("\n============================================================\n")
 cat("Baigta!\n")
