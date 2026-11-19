@@ -8,6 +8,7 @@
     - Užpildyti praleistas reikšmes
     - Panaikinti išskirtis
     - Panaikinti koreliuotus požymius
+    - Sunormuoti
 1. Sukurti 5 aibes tolesniam darbui:
     - Orginali 
     - PCA (5-6 dimencijų)
