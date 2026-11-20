@@ -10,6 +10,7 @@ config <- list(
 source("src/01_pre_processing.r")
 source("src/02_reduce_dimensions.r")
 source("src/03_find_optimal_clusters.r")
+source("src/04_cluster_datasets.r")
 
 
 cat("=== 1.1: duomenų nuskaitymas ===\n")
@@ -37,6 +38,9 @@ reduce_dimensions(diamonds, config$output_dir)
 
 cat("\n=== 3: optimalaus klasterių skaičiaus paieška ===\n")
 cluster_estimates <- find_optimal_clusters(diamonds)
+
+cat("\n=== 4: klasterizavimas (k-means / hierarchinis / DBSCAN) ===\n")
+clustering_results <- cluster_all_datasets()
 
 cat("\n============================================================\n")
 cat("Baigta!\n")

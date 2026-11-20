@@ -14,6 +14,12 @@
 settings_reduce <- list(
   verbose = TRUE,               # TRUE = spausdinti šios užduoties žinutes
 
+  # FALSE = sukurti tik trūkstamus rinkinius (esamų nepergenruoti).
+  # Tai svarbu UMAP: jis stochastinis, kiekvienas paleidimas duoda
+  # šiek tiek kitokias koordinates, tad be šios vėliavėlės esami
+  # failai būtų perrašyti. TRUE = visada generuoti iš naujo.
+  regenerate = FALSE,
+
   # PCA parametrai
   pca = list(
     center = TRUE,              # atimti požymių vidurkius
@@ -97,6 +103,11 @@ reduce_dimensions <- function(data, output_dir) {
 
   # PCA
   for (n in settings_reduce$dimensions$pca) {
+    if (!settings_reduce$regenerate &&
+        file.exists(file.path(output_dir, sprintf("a05_pca_%d.csv", n)))) {
+      say(verbose, sprintf("  pca_%d: failas jau yra, praleidžiama\n", n))
+      next
+    }
     say(verbose, sprintf("PCA -> %d dimensijos...\n", n))
     pca_result <- run_pca(data, n)
     explained_share <- sum(pca_result$explained) / pca_result$total_var
@@ -108,6 +119,11 @@ reduce_dimensions <- function(data, output_dir) {
 
   # UMAP
   for (n in settings_reduce$dimensions$umap) {
+    if (!settings_reduce$regenerate &&
+        file.exists(file.path(output_dir, sprintf("a05_umap_%d.csv", n)))) {
+      say(verbose, sprintf("  umap_%d: failas jau yra, praleidžiama\n", n))
+      next
+    }
     say(verbose, sprintf("UMAP -> %d dimensijos...\n", n))
     umap_result <- run_umap(data, n)
     save_reduced(umap_result$embedding, data$class, "umap", n,
