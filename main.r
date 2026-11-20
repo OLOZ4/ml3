@@ -9,6 +9,7 @@ config <- list(
 
 source("src/01_pre_processing.r")
 source("src/02_reduce_dimensions.r")
+source("src/03_find_optimal_clusters.r")
 
 
 cat("=== 1.1: duomenų nuskaitymas ===\n")
@@ -31,8 +32,11 @@ dir.create(config$output_dir, showWarnings = FALSE, recursive = TRUE)
 output_path <- file.path(config$output_dir, config$output_file)
 write.csv(diamonds, output_path, row.names = FALSE)
 
-cat("\n=== 2: dimesijų mažinimas (PCA / UMAP) ===\n")
+cat("\n=== 2: dimenciju mažinimas (PCA / UMAP) ===\n")
 reduce_dimensions(diamonds, config$output_dir)
+
+cat("\n=== 3: optimalaus klasterių skaičiaus paieška ===\n")
+cluster_estimates <- find_optimal_clusters(diamonds)
 
 cat("\n============================================================\n")
 cat("Baigta!\n")

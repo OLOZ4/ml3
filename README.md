@@ -15,11 +15,13 @@
     - PCA (2 dimencijų)
     - UMAP (5-6 dimencijų)
     - UMAP (2 dimencijų)
-1. Pasirinkti požymius, pagal kuriuos bus atliekamas klasterizavimas
+1. Pasirinkti požymius, pagal kuriuos bus atliekamas klasterizavimas (atrinkti požymius kurių kor. kof. < 95%)
 1. Nustatyti optimalų klasterių skaičių naudojant:
     - Empyrinį metodą
     - Elbow metodą
     - Vidutinio silueto
+    - Kelio metodu
+    - Dendograma
 1. Kiekvienam klasifikavimo algoritmu praeiti pro visas aibes ir:
     - Apskaičiuoti:
         - Vidinius matus:
