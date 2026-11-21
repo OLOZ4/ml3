@@ -43,8 +43,8 @@ settings_cluster_all <- list(
   kmeans = list(nstart = 25, seed = 75),
   hierarchical = list(method = "ward.D2"),
   dbscan = list(
-    minPts = 5,                 # minimalus taškų skaičius „tankioje“ zonoje
-    eps    =0.8              # NULL = automatinis (kNN atstumų kelio taškas)
+    minPts = 50,                 # minimalus taškų skaičius „tankioje“ zonoje
+    eps    = 1.77              # NULL = automatinis (kNN atstumų kelio taškas)
   ),                            # arba skaičius, pvz. 0.5
 
   visual_dir = "visuals/clustering_summary",
