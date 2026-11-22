@@ -1,21 +1,22 @@
 # =============================================================================
 #  UŽDUOTIS 3: rasti ir pagrįsti optimalų klasterių skaičių
 #
-#  Penki metodai (kiekvienas vizualizuojamas ir rašomas į visuals/<aplankas>/):
+#  Keturi metodai (kiekvienas vizualizuojamas ir rašomas į visuals/<aplankas>/):
 #    1. Alkūnės metodas (elbow)      – WSS kreivė; alkūnė = lūžio taškas
-#    2. Kelio metodas (knee)         – taškas, toliausiai nuo tiesės,
-#                                      jungiančios kreivės pradžią ir galą
-#    3. Silueto metodas (silhouette) – vidutinis silueto plotis kiekvienam k;
+#    2. Silueto metodas (silhouette) – vidutinis silueto plotis kiekvienam k;
 #                                      optimalus k = didžiausias plotis
-#    4. Empirinis metodas            – heuristinė formulė k = sqrt(n / 2)
-#    5. Dendrograma                  – hierarchinis klasterizavimas; k = kliauties
+#    3. Empirinis metodas            – heuristinė formulė k = sqrt(n / 2)
+#    4. Dendrograma                  – hierarchinis klasterizavimas; k = kliauties
 #                                      vietoje, kur didžiausias susiliejimo aukščio
 #                                      šuolis
 #
+#  (Kelio (knee) metodas čia nenaudojamas – jis skirtas DBSCAN eps parinkimui,
+#   žr. src/04_cluster_datasets.r)
+#
 #  Pagrindinė funkcija: find_optimal_clusters(data)
-#  Posistemės: compute_elbow(), compute_knee(), compute_silhouette(),
+#  Posistemės: compute_elbow(), compute_silhouette(),
 #              compute_empirical(), compute_dendrogram(),
-#              plot_elbow(), plot_knee(), plot_silhouette(), plot_empirical(),
+#              plot_elbow(), plot_silhouette(), plot_empirical(),
 #              plot_dendrogram(), plot_comparison(), save_plot()
 # =============================================================================
 
@@ -66,21 +67,6 @@ compute_elbow <- function(features) {
                else result$k[first_below - 1]
 
   list(curve = result, relative_drop = relative_drop, optimal_k = optimal_k)
-}
-
-# posistemė: kelio (knee) metodas – WSS kreivės taškas, toliausiai nuo
-# tiesės, jungiančios kreivės pradžią ir galą (Kneedle principas).
-# Naudota ta pati WSS kreivė kaip alkūnės metode (pakartotinai neskaičiuojama).
-compute_knee <- function(elbow) {
-  curve <- elbow$curve
-  # tiesė nuo pirmo iki paskutinio kreivės taško
-  slope <- (curve$wss[nrow(curve)] - curve$wss[1]) /
-           (curve$k[nrow(curve)] - curve$k[1])
-  line_y <- curve$wss[1] + slope * (curve$k - curve$k[1])
-  distances <- abs(curve$wss - line_y)
-  knee_k <- curve$k[which.max(distances)]
-  list(curve = curve, line_y = line_y, distances = distances,
-       optimal_k = knee_k)
 }
 
 # posistemė: dendrograma – hierarchinis klasterizavimas; optimalus k =
@@ -147,26 +133,6 @@ plot_silhouette <- function(sil) {
     labs(title = "Silueto metodas",
          subtitle = paste0("Vidutinis silueto plotis; optimalus k = ", optimal),
          x = "Klasterių skaičius k", y = "Vidutinis silueto plotis") +
-    theme_minimal(base_size = 13) +
-    theme(plot.title = element_text(face = "bold"))
-}
-
-plot_knee <- function(knee) {
-  curve <- knee$curve
-  optimal <- knee$optimal_k
-  line_data <- data.frame(k = curve$k, line = knee$line_y)
-  ggplot(curve, aes(x = k, y = wss)) +
-    geom_line(colour = "#2E86AB", linewidth = 0.7) +
-    geom_point(size = 2) +
-    geom_line(data = line_data, aes(x = k, y = line),
-              linetype = "dashed", colour = "grey60", linewidth = 0.5) +
-    geom_vline(xintercept = optimal, linetype = "dashed", colour = "#A23B72") +
-    annotate("text", x = optimal, y = max(curve$wss),
-             label = paste0("kelias: k = ", optimal),
-             vjust = -0.5, hjust = -0.1, colour = "#A23B72", fontface = "bold") +
-    labs(title = "Kelio metodas (knee)",
-         subtitle = "Taškas, toliausiai nuo tiesės tarp kreivės galų",
-         x = "Klasterių skaičius k", y = "WSS") +
     theme_minimal(base_size = 13) +
     theme(plot.title = element_text(face = "bold"))
 }

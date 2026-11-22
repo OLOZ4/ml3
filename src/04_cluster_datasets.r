@@ -68,7 +68,7 @@ run_kmeans_clustering <- function(features) {
 run_hierarchical_clustering <- function(features) {
   hierarchy <- hclust(dist(features),
                       method = settings_cluster_all$hierarchical$method)
-  cutree(hierarchy, k = settings_cluster_all$cluster_count)
+  cutree(hierarchy, k = 2)
 }
 
 run_dbscan_clustering <- function(features) {
