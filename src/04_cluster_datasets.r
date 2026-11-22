@@ -13,7 +13,13 @@
 #
 #  Matai:
 #    Vidiniai:  Silueto plotis, Calinski-Harabasz, Davies-Bouldin
-#    Išoriniai (palyginus su class): Jaccard, ARI, NMI
+#    Išoriniai (atskaitos suskirstymas): Jaccard, ARI, NMI.
+#      Tikrų klasių žymių nėra, todėl atskaita = TO PATIES algoritmo
+#      rezultatas ORIGINALIOJE erdvėje (datasets/a05.csv):
+#      kiekvienam algoritmui klasterizavimas a05 erdvėje apskaičiuojamas
+#      vieną kartą ir naudojamas kaip atskaitos suskirstymas, su kuriuo
+#      lyginami to paties algoritmo rezultatai sumažintose erdvėse.
+#      (a05.csv pats sau -> matai = 1, tai natūrali kontrolė.)
 #
 #  Pagrindinė funkcija: cluster_all_datasets()
 # =============================================================================
@@ -103,6 +109,7 @@ silhouette_score <- function(features, clusters) {
 
 # Calinski-Harabasz: tarpklasterinės / vidinės dispersijos santykis
 calinski_harabasz <- function(features, clusters) {
+  features <- as.matrix(features)
   cluster_ids <- sort(unique(clusters))   # aggregate grąžina surūšiuotus
   k <- length(cluster_ids)
   n <- nrow(features)
@@ -110,9 +117,11 @@ calinski_harabasz <- function(features, clusters) {
   centers <- as.matrix(aggregate(features, by = list(cluster = clusters),
                                   mean)[, -1])
   global_center <- colMeans(features)
-  within_ss  <- sum(sapply(seq_len(k), function(i) {
+  # Wk: atstumų iki SAVO centro kvadratų suma (sweep = teisinga eilučių
+  # atimtis; paprastas "m - center" R plečia stulpelių tvarka ir klaida!)
+  within_ss <- sum(sapply(seq_len(k), function(i) {
     members <- features[clusters == cluster_ids[i], , drop = FALSE]
-    sum((members - centers[i, ])^2)
+    sum((sweep(members, 2, centers[i, ]))^2)
   }))
   between_ss <- sum(sapply(seq_len(k), function(i) {
     n_i <- sum(clusters == cluster_ids[i])
@@ -123,14 +132,16 @@ calinski_harabasz <- function(features, clusters) {
 
 # Davies-Bouldin: klasterių sklaidos ir centrų atstumo santykis (mažiau = geriau)
 davies_bouldin <- function(features, clusters) {
+  features <- as.matrix(features)
   cluster_ids <- sort(unique(clusters))   # aggregate grąžina surūšiuotus
   k <- length(cluster_ids)
   if (k < 2) return(NA_real_)
   centers <- as.matrix(aggregate(features, by = list(cluster = clusters),
                                   mean)[, -1])
-  spread <- sapply(cluster_ids, function(id) {
-    members <- features[clusters == id, , drop = FALSE]
-    mean(sqrt(rowSums((members - centers[cluster_ids == id, ])^2)))
+  # S_i: vidutinis atstumas iki savo centro (sweep — teisinga eilučių atimtis)
+  spread <- sapply(seq_along(cluster_ids), function(i) {
+    members <- features[clusters == cluster_ids[i], , drop = FALSE]
+    mean(sqrt(rowSums((sweep(members, 2, centers[i, ]))^2)))
   })
   pairwise_scores <- sapply(seq_len(k), function(i) {
     max(sapply(setdiff(seq_len(k), i), function(j) {
@@ -254,6 +265,25 @@ cluster_all_datasets <- function() {
     dbscan       = run_dbscan_clustering
   )
 
+# ---- atskaitos suskirstymas: kiekvienas algoritmas ORIGINALIOJE erdvėje ----
+  # (tikrų klasių žymių nėra; a05.csv erdvė = atskaita. Visi rinkiniai
+  #  turi tas pačias 4114 eilučių tame pačiame tvarkoje, todėl žymės
+  #  lyginamos eilutė-į-eilutę.)
+  reference_dataset <- read.csv(
+    file.path(settings_cluster_all$data_dir, "a05.csv"),
+    check.names = FALSE)
+  reference_features <- reference_dataset[,
+    setdiff(names(reference_dataset), "class"), drop = FALSE]
+
+  reference_clusters <- list()
+  for (algorithm_name in names(algorithms)) {
+    say(verbose, sprintf("  atskaita (%s originalioje erdvėje): %d klasteriai\n",
+                         algorithm_name,
+                         length(unique(algorithms[[algorithm_name]](reference_features)))))
+    reference_clusters[[algorithm_name]] <-
+      algorithms[[algorithm_name]](reference_features)
+  }
+
   metrics_table <- data.frame()
   all_plots <- list()
   plot_index <- 0
@@ -265,7 +295,6 @@ cluster_all_datasets <- function() {
                         check.names = FALSE)
     feature_names <- setdiff(names(dataset), "class")
     features <- dataset[, feature_names, drop = FALSE]
-    labels <- dataset$class
     viz <- viz_coordinates(features)
     ncol <- ncol(features)
 
@@ -273,6 +302,9 @@ cluster_all_datasets <- function() {
 
       say(verbose, sprintf("    %s ...\n", algorithm_name))
       clusters <- algorithms[[algorithm_name]](features)
+
+      # atskaita = to paties algoritmo rezultatas originalioje erdvėje
+      labels <- reference_clusters[[algorithm_name]]
 
       # vidiniai matai
       internal <- data.frame(

@@ -69,6 +69,40 @@ compute_elbow <- function(features) {
   list(curve = result, relative_drop = relative_drop, optimal_k = optimal_k)
 }
 
+# posistemė: kelio (knee) metodas – WSS kreivės taškas, toliausiai nuo
+# tiesės, jungiančios kreivės pradžią ir galą (naudoja tą pačią WSS kreivę)
+compute_knee <- function(elbow) {
+  curve <- elbow$curve
+  # tiesė nuo pirmo iki paskutinio kreivės taško
+  slope <- (curve$wss[nrow(curve)] - curve$wss[1]) /
+           (curve$k[nrow(curve)] - curve$k[1])
+  line_y <- curve$wss[1] + slope * (curve$k - curve$k[1])
+  distances <- abs(curve$wss - line_y)
+  knee_k <- curve$k[which.max(distances)]
+  list(curve = curve, line_y = line_y, distances = distances,
+       optimal_k = knee_k)
+}
+
+plot_knee <- function(knee) {
+  curve <- knee$curve
+  optimal <- knee$optimal_k
+  line_data <- data.frame(k = curve$k, line = knee$line_y)
+  ggplot(curve, aes(x = k, y = wss)) +
+    geom_line(colour = "#2E86AB", linewidth = 0.7) +
+    geom_point(size = 2) +
+    geom_line(data = line_data, aes(x = k, y = line),
+              linetype = "dashed", colour = "grey60", linewidth = 0.5) +
+    geom_vline(xintercept = optimal, linetype = "dashed", colour = "#A23B72") +
+    annotate("text", x = optimal, y = max(curve$wss),
+             label = paste0("kelias: k = ", optimal),
+             vjust = -0.5, hjust = -0.1, colour = "#A23B72", fontface = "bold") +
+    labs(title = "Kelio metodas (knee)",
+         subtitle = "Taškas, toliausiai nuo tiesės tarp kreivės galų",
+         x = "Klasterių skaičius k", y = "WSS") +
+    theme_minimal(base_size = 13) +
+    theme(plot.title = element_text(face = "bold"))
+}
+
 # posistemė: dendrograma – hierarchinis klasterizavimas; optimalus k =
 # klasterių skaičius, kai dendrogramą kirto didžiausiame susiliejimo aukščio šuolyje
 compute_dendrogram <- function(features) {
