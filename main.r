@@ -11,6 +11,7 @@ source("src/01_pre_processing.r")
 source("src/02_reduce_dimensions.r")
 source("src/03_find_optimal_clusters.r")
 source("src/04_cluster_datasets.r")
+source("src/05_stability_experiment.r")
 
 
 cat("=== 1.1: duomenų nuskaitymas ===\n")
@@ -41,6 +42,9 @@ cluster_estimates <- find_optimal_clusters(diamonds)
 
 cat("\n=== 4: klasterizavimas (k-means / hierarchinis / DBSCAN) ===\n")
 clustering_results <- cluster_all_datasets()
+
+cat("\n=== 5: stabilumo eksperimentas ===\n")
+stability_results <- run_stability_experiment()
 
 cat("\n============================================================\n")
 cat("Baigta!\n")
