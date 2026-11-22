@@ -50,7 +50,7 @@ settings_cluster_all <- list(
   hierarchical = list(method = "ward.D2"),
   dbscan = list(
     minPts = 50,                 # minimalus taškų skaičius „tankioje“ zonoje
-    eps    = 1.77              # NULL = automatinis (kNN atstumų kelio taškas)
+    eps    = 1.73              # NULL = automatinis (kNN atstumų kelio taškas)
   ),                            # arba skaičius, pvz. 0.5
 
   visual_dir = "visuals/clustering_summary",
