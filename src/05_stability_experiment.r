@@ -95,7 +95,7 @@ cluster_sample <- function(x, algorithm) {
            nstart = s$kmeans$nstart, iter.max = 100)$cluster
   } else if (algorithm == "hierarchical") {
     cutree(hclust(dist(x), method = s$hierarchical$method),
-           k = s$cluster_count)
+           k = 2)
   } else if (algorithm == "dbscan") {
     as.integer(dbscan(x, eps = s$dbscan$eps,
                        minPts = s$dbscan$minPts)$cluster)
