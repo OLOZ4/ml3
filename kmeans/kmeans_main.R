@@ -58,7 +58,10 @@ umap6d.res <- cluster(29, umap6d, 3)
 umap2d.res <- cluster(29, umap2d, 3)
 
 # KLASTERIU POZYMIU VIDURKIAI
-print(dataset.res$centers)
+# ISVEDAMI IS NESTANDARTIZUOTOS AIBES
+dataset_unscaled <- read.csv("a05_unscaled.csv")[names(dataset)]
+cluster_means <- aggregate(dataset_unscaled, by = list(Cluster = dataset.res$cluster), FUN = mean)
+print(cluster_means, row.names = FALSE)
 
 # SKIRTINGU ALGORITMU PALYGINIMAS
 compare_algorithms(dataset)
@@ -109,17 +112,3 @@ internal_criteria(pc6d, pc6d.res$cluster, sil_pc6d)
 internal_criteria(pc2d, pc2d.res$cluster, sil_pc2d)
 internal_criteria(umap6d, umap6d.res$cluster, sil_umap6d)
 internal_criteria(umap2d, umap2d.res$cluster, sil_umap2d)
-
-# ISORINIAI MATAI
-
-# clusterCrit::extCriteria(
-#   pc2d,
-#   pc2d.res$cluster,
-#   c("Jaccard", "Davies_Bouldin", "Silhouette")
-# )
-# 
-# clusterCrit::extCriteria(
-#   as.matrix(dataset),
-#   dataset.res$cluster,
-#   c("Jaccard", "Davies_Bouldin", "Silhouette")
-# )
